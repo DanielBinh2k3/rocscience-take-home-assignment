@@ -1,0 +1,53 @@
+### Python
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Distribution / packaging
+build/
+dist/
+*.egg-info/
+*.egg
+.eggs/
+.installed.cfg
+MANIFEST
+
+# Virtual environments
+.venv/
+venv/
+env/
+ENV/
+
+# uv
+.python-version
+
+# Environment variable files — NEVER commit secrets
+# .env.example is intentionally NOT listed (safe to commit)
+.env
+.env.*
+!.env.example
+
+# Testing & coverage
+.pytest_cache/
+.coverage
+htmlcov/
+coverage.xml
+*.coveragerc
+
+# Type checkers & linters
+.mypy_cache/
+.ruff_cache/
+
+# IDEs
+.idea/
+.vscode/
+*.sublime-project
+*.sublime-workspace
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Alembic — keep migrations, ignore generated pycache only
+migrations/__pycache__/

@@ -1,0 +1,44 @@
+# ---- Secrets — CRITICAL: never send to Docker build context ----
+.env
+.env.*
+!.env.example
+
+# ---- Python artifacts ----
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+.eggs/
+
+# ---- Virtual environments ----
+.venv/
+venv/
+env/
+
+# ---- Testing & coverage ----
+.pytest_cache/
+.coverage
+htmlcov/
+coverage.xml
+tests/
+
+# ---- Type checkers & linters ----
+.mypy_cache/
+.ruff_cache/
+
+# ---- Git ----
+.git/
+.gitignore
+
+# ---- IDEs ----
+.idea/
+.vscode/
+
+# ---- OS ----
+.DS_Store
+Thumbs.db
+
+# ---- Docs / non-runtime files ----
+README.md
+*.md
+scripts/
