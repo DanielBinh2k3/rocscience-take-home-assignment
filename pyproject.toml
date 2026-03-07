@@ -13,6 +13,7 @@ dependencies = [
     "alembic",
     "pydantic-settings",
     "python-dotenv",
+    "openai-agents>=0.10.5",
 ]
 
 [dependency-groups]
