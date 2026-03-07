@@ -10,4 +10,4 @@ def make_sse_event(event: str, data: dict[str, Any]) -> str:
         data: <json_payload>\\n
         \\n
     """
-    return f"event: {event}\ndata: {json.dumps(data)}\n\n"
+    return f"event: {event}\ndata: {json.dumps(data, ensure_ascii=False)}\n\n"

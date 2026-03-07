@@ -8,7 +8,7 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      test: [ "CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB" ]
       interval: 5s
       timeout: 5s
       retries: 10
@@ -32,7 +32,8 @@ services:
     environment:
       POSTGRES_HOST: db
     volumes:
-      - .:/app
+      - ./app:/app/app # chỉ sync source code
+      - ./alembic:/app/alembic # chỉ sync migrations
     depends_on:
       migrate:
         condition: service_completed_successfully

@@ -1,8 +1,11 @@
 import logging
 import sys
 
+from app.utils.config import settings
+
 
 def get_logger(name: str) -> logging.Logger:
+
     logger = logging.getLogger(name)
 
     if not logger.handlers:
@@ -15,5 +18,5 @@ def get_logger(name: str) -> logging.Logger:
         )
         logger.addHandler(handler)
 
-    logger.setLevel(logging.DEBUG)
+    logger.setLevel(logging.DEBUG if settings.DEBUG else logging.INFO)
     return logger
