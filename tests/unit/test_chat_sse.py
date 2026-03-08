@@ -1,5 +1,6 @@
 """Unit tests for chat SSE stream — verify event order with mocked agent."""
 
+import asyncio
 import uuid
 from unittest.mock import AsyncMock, MagicMock, patch
 
@@ -30,10 +31,16 @@ async def mock_agent_stream():
 
 @pytest_asyncio.fixture
 async def mock_repositories():
-    """Patch SessionRepository and MessageRepository so no real DB calls are made."""
+    """Patch SessionRepository, MessageRepository, and the background persist task.
+
+    _persist_assistant_reply uses AsyncSessionLocal directly (bypasses get_db),
+    so we replace it with an async no-op to prevent unit tests from trying to
+    connect to a real database.
+    """
     with (
         patch("app.api.v1.chat.SessionRepository") as mock_sessions_cls,
         patch("app.api.v1.chat.MessageRepository") as mock_messages_cls,
+        patch("app.api.v1.chat._persist_assistant_reply", new_callable=AsyncMock),
     ):
         mock_sessions = mock_sessions_cls.return_value
         mock_messages = mock_messages_cls.return_value
@@ -142,3 +149,48 @@ async def test_sse_events_emitted_in_correct_order(
     assert len(done_events) >= 1
     done_data = json.loads(done_events[-1][1])  # [1] is the data string
     assert done_data["session_id"] == str(sample_session_id)
+
+
+@pytest.mark.asyncio
+async def test_heartbeat_emitted_during_stream(
+    test_client_no_db: AsyncClient,
+    mock_agent_stream: MagicMock,
+    sample_session_id: uuid.UUID,
+    sample_user_id: str,
+):
+    """Unit test: heartbeat events are emitted while stream is open."""
+    long_response = (
+        "This is a longer response to simulate real streaming from the model. "
+        "Each word arrives with a small delay, mimicking token-by-token generation. "
+        "The stream stays open long enough for multiple heartbeats to fire."
+    )
+
+    async def slow_agent(*args, **kwargs):
+        for word in long_response.split():
+            await asyncio.sleep(0.15)  # ~0.15s per word → ~3s total
+            yield make_sse_event("agent.message.delta", {"text": word + " "})
+        yield make_sse_event(
+            "agent.message.done", {"session_id": str(sample_session_id)}
+        )
+
+    mock_agent_stream.return_value = slow_agent()
+
+    with patch("app.api.v1.chat._HEARTBEAT_INTERVAL", 0.2):
+        response = await test_client_no_db.post(
+            "/api/v1/chat/stream",
+            json={
+                "session_id": str(sample_session_id),
+                "user_id": sample_user_id,
+                "message": "Tell me more",
+            },
+        )
+
+    assert response.status_code == 200
+    events = _parse_sse_events(response.text)
+    event_types = [e[0] for e in events]
+    heartbeat_count = event_types.count("heartbeat")
+
+    assert "heartbeat" in event_types
+    assert heartbeat_count >= 2, (
+        f"Expected at least 2 heartbeats, got {heartbeat_count}"
+    )
