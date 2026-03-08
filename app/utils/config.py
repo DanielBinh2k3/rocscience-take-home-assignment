@@ -1,3 +1,5 @@
+from urllib.parse import quote_plus
+
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -21,8 +23,10 @@ class Settings(BaseSettings):
 
     @property
     def DATABASE_URL(self) -> str:
-        """Returns the PostgreSQL connection string."""
-        return f"postgresql+asyncpg://{self.POSTGRES_USER}:{self.POSTGRES_PASSWORD}@{self.POSTGRES_HOST}:{self.POSTGRES_PORT}/{self.POSTGRES_DB}"
+        """Returns the PostgreSQL async connection string."""
+        user = quote_plus(self.POSTGRES_USER)
+        password = quote_plus(self.POSTGRES_PASSWORD)
+        return f"postgresql+asyncpg://{user}:{password}@{self.POSTGRES_HOST}:{self.POSTGRES_PORT}/{self.POSTGRES_DB}"
 
     DB_ECHO: bool = False  # set True to log all SQL statements
 

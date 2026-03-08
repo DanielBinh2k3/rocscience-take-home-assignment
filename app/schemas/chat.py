@@ -10,10 +10,23 @@ from app.db.models import MessageRole
 # ── Chat / Stream ─────────────────────────────────────────────────────────────
 
 
+_MAX_MESSAGE_LENGTH = 32_000  # ~8k tokens
+
+
 class ChatRequest(BaseModel):
     session_id: uuid.UUID = Field(..., description="UUID of the chat session")
-    user_id: str = Field(..., description="Identifier of the requesting user")
-    message: str = Field(..., min_length=1, description="User message text")
+    user_id: str = Field(
+        ...,
+        min_length=1,
+        max_length=255,
+        description="Identifier of the requesting user",
+    )
+    message: str = Field(
+        ...,
+        min_length=1,
+        max_length=_MAX_MESSAGE_LENGTH,
+        description="User message text",
+    )
 
 
 # ── Session history ───────────────────────────────────────────────────────────

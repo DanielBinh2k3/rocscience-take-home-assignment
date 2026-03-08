@@ -18,7 +18,9 @@ router = APIRouter()
 @router.get("/sessions/{session_id}/history", response_model=SessionHistoryOut)
 async def get_history(
     session_id: uuid.UUID,
-    user_id: str = Query(..., description="Owner of the session"),
+    user_id: str = Query(
+        ..., min_length=1, max_length=255, description="Owner of the session"
+    ),
     db: AsyncSession = Depends(get_db),
 ):
     sessions = SessionRepository(db)
@@ -38,12 +40,14 @@ async def get_history(
 @router.delete("/sessions/{session_id}", status_code=204)
 async def remove_session(
     session_id: uuid.UUID,
-    user_id: str = Query(..., description="Owner of the session"),
+    user_id: str = Query(
+        ..., min_length=1, max_length=255, description="Owner of the session"
+    ),
     db: AsyncSession = Depends(get_db),
 ):
     sessions = SessionRepository(db)
 
     deleted = await sessions.delete(session_id, user_id)
-    await db.commit()
     if not deleted:
         raise HTTPException(status_code=404, detail="Session not found")
+    await db.commit()
